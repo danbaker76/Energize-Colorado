@@ -1,0 +1,70 @@
+import numpy as np
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+## The below code goes to the MBO Colorado website and makes a list of all the links on the directory
+
+## Right now, just changing the page number and rerunning second portion of code until I can get it on an automated basis
+
+url = 'https://www.mbocolorado.com/directory-business_dir/?_page=1&num=200&sort=post_published'
+response = requests.get(url)
+soup = BeautifulSoup(response.text,'html.parser')
+links = [item.get('href') for item in soup.find_all('a', {'data-bundle-type': 'directory__listing'})]
+
+## Initialize Blank Variables
+
+company_names = []
+phone_numbers = []
+primary_naics = []
+emails = []
+contacts = []
+websites = []
+addresses = []
+
+## This for-loop goes through all 200 links and pulls business information from each page
+
+for i in range(len(links)):
+    link = links[i]
+    new_response = requests.get(link)
+    mini_soup = BeautifulSoup(new_response.text,'html.parser')
+    if mini_soup.find('h1',class_="ast-advanced-headers-title"):
+        company_names.append(mini_soup.find('h1',class_="ast-advanced-headers-title").get_text().strip())
+    else:
+        company_names.append('Undefined')
+    if mini_soup.find(class_='drts-display-element drts-display-element-entity_field_field_phone-2 drts-display-element-inlineable'):
+        phone_numbers.append(mini_soup.find(class_='drts-display-element drts-display-element-entity_field_field_phone-2 drts-display-element-inlineable').find('a').get_text())
+    else:
+        phone_numbers.append('Undefined')
+    if mini_soup.find(class_= "drts-display-element drts-display-element-entity_field_field_primary_naics_code-1 drts-display-element-inlineable"):
+        primary_naics.append(mini_soup.find(class_= "drts-display-element drts-display-element-entity_field_field_primary_naics_code-1 drts-display-element-inlineable").get_text()[-6:])
+    else:
+        primary_naics.append('Undefined')
+    if mini_soup.find(class_='drts-display-element drts-display-element-entity_field_field_email-2 drts-display-element-inlineable'):
+        emails.append(mini_soup.find(class_='drts-display-element drts-display-element-entity_field_field_email-2 drts-display-element-inlineable').get_text())
+    else:
+        emails.append('Undefined')
+    if mini_soup.find(class_='drts-display-element drts-display-element-entity_field_field_contact_name-1 drts-display-element-inlineable'):
+        contacts.append(mini_soup.find(class_='drts-display-element drts-display-element-entity_field_field_contact_name-1 drts-display-element-inlineable').find(class_='drts-entity-field-value').get_text())
+    else:
+        contacts.append('Undefined')
+    if mini_soup.find(rel="nofollow external noopener",href=True):
+        websites.append(mini_soup.find(rel="nofollow external noopener")['href'])
+    else:
+        websites.append('Undefined')
+    #if mini_soup.find(class_='drts-location-address drts-map-marker-trigger drts-map-marker-trigger-0'):
+    #    addresses.append(str(soup.find(class_='drts-location-address drts-map-marker-trigger drts-map-marker-trigger-0')).replace('<span class="drts-location-address drts-map-marker-trigger drts-map-marker-trigger-0" data-key="0">',''))
+    #else:
+    #    addresses.append('Undefined')
+    if mini_soup.find(class_='drts-location-address drts-map-marker-trigger drts-map-marker-trigger-0'):
+        addresses.append(mini_soup.find(class_='drts-location-address drts-map-marker-trigger drts-map-marker-trigger-0').get_text())
+    else:
+        addresses.append('Undefined')
+        
+## Next, putting the created lists into a dataframe
+
+df = pd.DataFrame(list(zip(company_names,contacts,websites,phone_numbers,primary_naics,emails,addresses)),columns=('Company Name','Contact','Website','Phone Number','Primary NAICS','Email Address','Full Address'))
+
+## Check the dataframe
+
+df
