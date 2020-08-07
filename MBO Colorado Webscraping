@@ -24,6 +24,7 @@ addresses = []
 
 ## This for-loop goes through all 200 links and pulls business information from each page
 
+## THIS one contains no mini variables
 for i in range(len(links)):
     link = links[i]
     new_response = requests.get(link)
@@ -60,11 +61,18 @@ for i in range(len(links)):
         addresses.append(mini_soup.find(class_='drts-location-address drts-map-marker-trigger drts-map-marker-trigger-0').get_text())
     else:
         addresses.append('Undefined')
+    if mini_soup.find_all('p'):
+        descriptions.append(mini_soup.find_all('p')[0].get_text())
+    else:
+        descriptions.append('Undefined')
+    if mini_soup.find('div',class_='drts-entity-field-value'):
+        self_certification.append(mini_soup.find('div',class_='drts-entity-field-value').get_text())
+    else:
+        self_certification.append('Undefined')
         
 ## Next, putting the created lists into a dataframe
 
-df = pd.DataFrame(list(zip(company_names,contacts,websites,phone_numbers,primary_naics,emails,addresses)),columns=('Company Name','Contact','Website','Phone Number','Primary NAICS','Email Address','Full Address'))
-
+df = pd.DataFrame(list(zip(company_names,contacts,websites,phone_numbers,primary_naics,emails,addresses,descriptions,self_certification)),columns=('Company Name','Contact','Website','Phone Number','Primary NAICS','Email Address','Full Address','Descriptions','Self-Certification'))
 ## Check the dataframe
 
 df
