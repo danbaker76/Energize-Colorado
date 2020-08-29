@@ -1,0 +1,10 @@
+import numpy as np
+import pandas as pd
+import os
+
+## Changing Working Directory to the one with all the secretary of state data
+os.chdir('/Users/danbaker/Desktop/Projects/Energize Colorado/California SOS Project/API Files/')
+
+## Reading all the LPs into a dataframe
+
+lp = pd.read_csv('LPMASTER.csv',low_memory=False)
